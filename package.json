@@ -1,0 +1,42 @@
+{
+  "name": "skalebot-meta-poc-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "tsx dist/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shivam-070208/skalebot-meta-poc-backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/shivam-070208/skalebot-meta-poc-backend/issues"
+  },
+  "homepage": "https://github.com/shivam-070208/skalebot-meta-poc-backend#readme",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.10.1"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
+    "typescript": "^6.0.3",
+    "@types/dotenv": "^8.2.3",
+    "@types/express": "^5.0.6",
+    "@types/morgan": "^1.9.10",
+    "nodemon": "^3.0.3",
+    "tsx": "^4.21.0"
+  }
+}
