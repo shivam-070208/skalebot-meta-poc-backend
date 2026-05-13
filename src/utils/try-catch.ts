@@ -9,6 +9,7 @@ export function tryCatch(
     try {
       return await handler(req, res, next)
     } catch (err) {
+      console.error(err);
       if (err instanceof ApiError) {
         return res.status(err.statusCode).json({
           message: err.message,
