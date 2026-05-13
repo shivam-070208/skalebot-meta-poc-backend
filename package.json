@@ -7,7 +7,7 @@
     "build": "tsc",
     "dev": "tsx watch src/index.ts",
     "typecheck": "tsc --noEmit",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "db:push": "tsx src/db/migrate.ts",
     "start": "tsx dist/index.js"
   },
   "repository": {
@@ -28,15 +28,17 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
-    "morgan": "^1.10.1"
+    "morgan": "^1.10.1",
+    "pg": "^8.20.0"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",
-    "typescript": "^6.0.3",
     "@types/dotenv": "^8.2.3",
     "@types/express": "^5.0.6",
     "@types/morgan": "^1.9.10",
+    "@types/pg": "^8.20.0",
     "nodemon": "^3.0.3",
-    "tsx": "^4.21.0"
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3"
   }
 }
