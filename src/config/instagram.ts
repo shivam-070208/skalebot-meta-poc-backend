@@ -7,5 +7,12 @@ export const INSTAGRAM_OAUTH_SCOPE =
 export const INSTAGRAM_GRAPH_API_VERSION =
   process.env.INSTAGRAM_GRAPH_API_VERSION ?? "v21.0";
 
+export const INSTAGRAM_AUTHORIZE_URL =
+  "https://www.instagram.com/oauth/authorize";
+export const INSTAGRAM_ACCESS_TOKEN_URL =
+  "https://api.instagram.com/oauth/access_token";
+export const INSTAGRAM_GRAPH_TOKEN_URL =
+  "https://graph.instagram.com/access_token";
+
 export const instagramOAuthConfigured = (): boolean =>
   Boolean(INSTAGRAM_APP_ID && INSTAGRAM_APP_SECRET && INSTAGRAM_REDIRECT_URI);
