@@ -1,7 +1,7 @@
 import {
   AUTH_EMAIL_RE,
   AUTH_PASSWORD_MIN,
-} from "@/config/auth-credentials";
+} from "@/config/auth";
 import type { LoginInput, RegisterInput } from "@/types/user";
 import ApiError from "@/utils/api-error";
 

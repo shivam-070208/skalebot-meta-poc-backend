@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { AUTH_BCRYPT_ROUNDS } from "@/config/auth-credentials";
+import { AUTH_BCRYPT_ROUNDS } from "@/config/auth";
 import { mapPublicUser } from "@/mappers/user.mapper";
 import {
   findUserByEmail,
