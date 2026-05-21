@@ -79,3 +79,50 @@ export const upsertInstagramAccount = async (
   }
   return mapAccountRow(row);
 };
+
+type AccountAuthRow = {
+  id: string;
+  user_id: string;
+  instagram_account_id: string;
+  access_token: string | null;
+};
+
+export const findAccountForUser = async (
+  accountId: string,
+  userId: string
+): Promise<AccountAuthRow | null> => {
+  const res = await query(
+    `SELECT id, user_id, instagram_account_id, access_token
+     FROM accounts
+     WHERE id = $1 AND user_id = $2 AND is_active = true
+     LIMIT 1`,
+    [accountId, userId]
+  );
+  return (res.rows[0] as AccountAuthRow | undefined) ?? null;
+};
+
+export const findAccountById = async (
+  accountId: string
+): Promise<AccountAuthRow | null> => {
+  const res = await query(
+    `SELECT id, user_id, instagram_account_id, access_token
+     FROM accounts
+     WHERE id = $1 AND is_active = true
+     LIMIT 1`,
+    [accountId]
+  );
+  return (res.rows[0] as AccountAuthRow | undefined) ?? null;
+};
+
+export const findAccountByInstagramId = async (
+  instagramAccountId: string
+): Promise<AccountAuthRow | null> => {
+  const res = await query(
+    `SELECT id, user_id, instagram_account_id, access_token
+     FROM accounts
+     WHERE instagram_account_id = $1 AND is_active = true
+     LIMIT 1`,
+    [instagramAccountId]
+  );
+  return (res.rows[0] as AccountAuthRow | undefined) ?? null;
+};

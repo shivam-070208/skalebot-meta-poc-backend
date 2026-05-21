@@ -3,8 +3,8 @@ import {
   INSTAGRAM_APP_ID,
   INSTAGRAM_APP_SECRET,
   INSTAGRAM_AUTHORIZE_URL,
-  INSTAGRAM_GRAPH_API_VERSION,
   INSTAGRAM_GRAPH_TOKEN_URL,
+  instagramGraphUrl,
   INSTAGRAM_OAUTH_SCOPE,
   INSTAGRAM_REDIRECT_URI,
 } from "@/config/instagram";
@@ -23,6 +23,138 @@ import { upsertInstagramAccount } from "@/repositories/account.repository";
 import { createInstagramOAuthState } from "@/utils/instagram-oauth-state";
 import type { PublicInstagramAccount } from "@/types/instagram";
 
+export const subscribeInstagramWebhooks =
+async(
+
+ igUserId:string,
+
+ accessToken:string
+
+):Promise<void>=>{
+
+ const u = new URL(instagramGraphUrl(`/${igUserId}/subscribed_apps`));
+
+
+ u.searchParams.set(
+
+ "subscribed_fields",
+
+ "comments,messages"
+
+ )
+
+
+ u.searchParams.set(
+
+ "access_token",
+
+ accessToken
+
+ )
+
+
+ const res =
+ await fetch(
+
+  u.toString(),
+
+  {
+
+   method:"POST"
+
+  }
+
+ )
+
+
+ let body:any={}
+
+
+ try{
+
+   body =
+   await parseFetchJson(
+    res
+   )
+
+ }
+ catch{
+
+   body={
+
+   error:
+
+   "Unable to parse"
+
+   }
+
+ }
+
+
+ if(!res.ok){
+
+  console.error(
+
+   "Webhook subscribe failed",
+
+   {
+
+    igUserId,
+
+    status:
+     res.status,
+
+    body
+
+   }
+
+  )
+
+  throw new ApiError(
+
+  "HTTP_400_BAD_REQUEST",
+
+  body?.error?.message
+
+  ||
+
+  "Subscription failed"
+
+  )
+
+ }
+
+
+ console.log(
+
+ "Webhook subscribed:",
+
+ JSON.stringify(
+  body,
+  null,
+  2
+ )
+
+ )
+
+
+ if(
+
+  body.success !== true
+
+ ){
+
+  console.warn(
+
+  "Subscription returned unexpected response",
+
+  body
+
+  )
+
+ }
+
+}
 export const buildInstagramAuthorizeUrl = (userId: string): string => {
   const state = createInstagramOAuthState(userId);
   const u = new URL(INSTAGRAM_AUTHORIZE_URL);
@@ -90,9 +222,7 @@ export const exchangeShortForLongToken = async (
 export const fetchInstagramProfile = async (
   accessToken: string
 ): Promise<InstagramProfile> => {
-  const u = new URL(
-    `https://graph.instagram.com/${INSTAGRAM_GRAPH_API_VERSION}/me`
-  );
+  const u = new URL(instagramGraphUrl("/me"));
   u.searchParams.set("fields", "id,user_id,username,profile_picture_url");
   u.searchParams.set("access_token", accessToken);
   const res = await fetch(u.toString(), { method: "GET" });
@@ -131,6 +261,13 @@ export const fetchInstagramProfile = async (
       "Could not resolve Instagram user id from profile"
     );
   }
+
+  try {
+    await subscribeInstagramWebhooks(String(igUserId), accessToken);
+  } catch (e) {
+    console.error("Error subscribing to Instagram webhooks", e);
+  }
+
   return {
     igUserId: String(igUserId),
     username: typeof username === "string" ? username : null,
