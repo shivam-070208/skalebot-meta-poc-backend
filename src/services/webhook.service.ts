@@ -7,6 +7,7 @@ import {
   insertWebhookEvent,
   markWebhookEventProcessed,
 } from "@/repositories/webhook-event.repository.js";
+import { handleIncomingMessageContact } from "@/services/contact-webhook.service.js";
 import { queueAutomationActions } from "@/services/automation-execution.service.js";
 import { parseMetaWebhookPayload } from "@/webhooks/meta-parser.js";
 import { matchRulesForEvent } from "@/webhooks/rule-matcher.js";
@@ -21,6 +22,10 @@ export const handleMetaWebhook = async (payload: unknown): Promise<void> => {
       if (!account) {
         await markWebhookEventProcessed(eventId);
         continue;
+      }
+
+      if (event.isIncomingMessage) {
+        await handleIncomingMessageContact(account.id, event);
       }
 
       const exactRules = await findMatchingRules(

@@ -1,14 +1,22 @@
 import { Worker } from "bullmq";
 import { redisConnection } from "@/config/redis.js";
 import { QUEUE_NAMES } from "@/config/queues.js";
-import { sendInstagramMessage } from "@/services/instagram-message.service.js";
-import type { MessageJobData } from "@/types/queue.js";
+import { sendCampaign, CampaignContent } from "@/services/instagram-message.service.js";
 
-export const startMessageWorker = (): Worker<MessageJobData> => {
-  const worker = new Worker<MessageJobData>(
+
+export const startMessageWorker = (): Worker<{
+  accountId: string;
+  recipientId: string;
+  contents: CampaignContent[];
+}> => {
+  const worker = new Worker<{
+    accountId: string;
+    recipientId: string;
+    contents: CampaignContent[];
+  }>(
     QUEUE_NAMES.message,
     async (job) => {
-      await sendInstagramMessage(job.data);
+      await sendCampaign(job.data);
     },
     { connection: redisConnection, concurrency: 5 }
   );

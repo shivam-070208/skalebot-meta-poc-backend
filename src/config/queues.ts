@@ -2,6 +2,7 @@ import { Queue } from "bullmq";
 import { redisConnection } from "@/config/redis.js";
 import type {
   AutomationJobData,
+  CampaignQueueJobData,
   MessageJobData,
   PublishJobData,
 } from "@/types/queue.js";
@@ -10,6 +11,7 @@ export const QUEUE_NAMES = {
   publish: "publish",
   message: "message",
   automation: "automation",
+  campaign: "campaign",
 } as const;
 
 const defaultJobOptions = {
@@ -34,6 +36,14 @@ export const messageQueue = new Queue<MessageJobData>(QUEUE_NAMES.message, {
 
 export const automationQueue = new Queue<AutomationJobData>(
   QUEUE_NAMES.automation,
+  {
+    connection: redisConnection,
+    defaultJobOptions,
+  }
+);
+
+export const campaignQueue = new Queue<CampaignQueueJobData>(
+  QUEUE_NAMES.campaign,
   {
     connection: redisConnection,
     defaultJobOptions,

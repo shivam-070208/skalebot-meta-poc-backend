@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import authRouter from '@v1/routes/auth.route';
 import postsRouter from '@v1/routes/posts.route';
+import campaignsRouter from '@v1/routes/campaigns.route';
 import webhookRouter from '@v1/routes/webhook.route';
 import { servePolicyPage } from '@/pages/policy.page';
 
@@ -22,6 +23,7 @@ app.get('/policy', servePolicyPage);
 
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/posts', postsRouter);
+app.use('/api/v1/campaigns', campaignsRouter);
 app.use('/webhooks', webhookRouter);
 
 app.listen(PORT, () => {

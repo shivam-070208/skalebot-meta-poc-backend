@@ -1,59 +1,147 @@
 import axios, { isAxiosError } from "axios";
-import { instagramGraphUrl } from "@/config/instagram.js";
-import { findAccountById } from "@/repositories/account.repository.js";
-import ApiError from "@/utils/api-error.js";
+import ApiError from "@/utils/api-error";
+import { findAccountById } from "@/repositories/account.repository";
 
-export const sendInstagramMessage = async (params: {
+export type CampaignContent = {
+  content_type: "text" | "link" | "image" | "video" | "template";
+  text_content?: string;
+  media_url?: string;
+  link_url?: string;
+  buttons?: {
+    label: string;
+    action_type: "open_url" | "reply" | "trigger_post";
+    action_value: string;
+  }[];
+};
+
+export const sendCampaign = async ({
+  accountId,
+  recipientId,
+  contents,
+}: {
   accountId: string;
   recipientId: string;
-  text: string;
-}): Promise<void> => {
-  const account = await findAccountById(params.accountId);
+  contents: CampaignContent[];
+}) => {
+  const account = await findAccountById(accountId);
+
   if (!account?.access_token) {
-    throw new ApiError(
-      "HTTP_400_BAD_REQUEST",
-      "Instagram account has no access token"
-    );
+    throw new ApiError("HTTP_400_BAD_REQUEST", "Missing access token");
   }
 
-  if (params.recipientId === account.instagram_account_id) {
-    throw new ApiError(
-      "HTTP_400_BAD_REQUEST",
-      "Cannot send a message to the same Instagram account (check webhook sender id)"
-    );
-  }
+  const url = "https://graph.instagram.com/v25.0/me/messages";
+  const headers = {
+    Authorization: `Bearer ${account.access_token}`,
+  };
 
-  const url = instagramGraphUrl(
-    `/${account.instagram_account_id}/messages`
-  );
+  for (const content of contents) {
+    try {
+      if (content.content_type === "text") {
+        await axios.post(
+          url,
+          {
+            recipient: { id: recipientId },
+            message: { text: content.text_content },
+          },
+          { headers }
+        );
+      } else if (content.content_type === "image") {
+        await axios.post(
+          url,
+          {
+            recipient: { id: recipientId },
+            message: {
+              attachment: {
+                type: "image",
+                payload: {
+                  url: content.media_url,
+                },
+              },
+            },
+          },
+          { headers }
+        );
+        if (content.text_content) {
+          await axios.post(
+            url,
+            {
+              recipient: { id: recipientId },
+              message: { text: content.text_content },
+            },
+            { headers }
+          );
+        }
+      } else if (content.content_type === "link") {
+        await axios.post(
+          url,
+          {
+            recipient: { id: recipientId },
+            message: {
+              attachment: {
+                type: "template",
+                payload: {
+                  template_type: "button",
+                  text: content.text_content || "Open link",
+                  buttons: [
+                    {
+                      type: "web_url",
+                      title: "Open",
+                      url: content.link_url,
+                    },
+                  ],
+                },
+              },
+            },
+          },
+          { headers }
+        );
+      } else if (content.content_type === "template") {
+        const buttons =
+          (content.buttons || [])
+            .slice(0, 3)
+            .map((btn) => {
+              if (btn.action_type === "open_url") {
+                return {
+                  type: "web_url",
+                  title: btn.label,
+                  url: btn.action_value,
+                };
+              }
+              return {
+                type: "postback",
+                title: btn.label,
+                payload: btn.action_value,
+              };
+            });
 
-  try {
-    await axios.post(
-      url,
-      {
-        recipient: { id: params.recipientId },
-        message: { text: params.text },
-      },
-      { params: { access_token: account.access_token } }
-    );
-  } catch (err) {
-    if (isAxiosError(err)) {
-      const meta = err.response?.data as
-        | { error?: { message?: string; code?: number } }
-        | undefined;
-      const detail = meta?.error?.message ?? err.message;
-      console.error("Instagram send message failed", {
-        status: err.response?.status,
-        code: meta?.error?.code,
-        message: detail,
-        recipientId: params.recipientId,
-        igUserId: account.instagram_account_id,
-      });
-      throw new ApiError(
-        "HTTP_502_BAD_GATEWAY",
-        `Instagram message failed: ${detail}`
-      );
+        if (!buttons.length) {
+          console.warn("Skipping template: no buttons");
+          continue;
+        }
+
+        await axios.post(
+          url,
+          {
+            recipient: { id: recipientId },
+            message: {
+              attachment: {
+                type: "template",
+                payload: {
+                  template_type: "button",
+                  text: content.text_content,
+                  buttons,
+                },
+              },
+            },
+          },
+          { headers }
+        );
+      }
+    } catch (err) {
+      if (isAxiosError(err)) {
+        console.error("IG send failed", err.response?.data);
+      }
+      throw err;
     }
-    throw err;
   }
 };
