@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { query } from "@/config/db.js";
+import { query } from "@/config/db";
 
 export const insertWebhookEvent = async (
   eventType: string,

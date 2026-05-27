@@ -1,17 +1,17 @@
-import { publishQueue } from "@/config/queues.js";
+import { publishQueue } from "@/config/queues";
 import {
   mapAutomationRuleRow,
   mapPostRow,
-} from "@/mappers/post.mapper.js";
-import { findAccountForUser } from "@/repositories/account.repository.js";
-import { findRuleByPostId } from "@/repositories/automation-rule.repository.js";
+} from "@/mappers/post.mapper";
+import { findAccountForUser } from "@/repositories/account.repository";
+import { findRuleByPostId } from "@/repositories/automation-rule.repository";
 import {
   createPostWithOptionalRule,
   findPostForUser,
-} from "@/repositories/post.repository.js";
-import type { PublicAutomationRule } from "@/types/automation.js";
-import type { CreatePostInput, CreatePostResult } from "@/types/post.js";
-import ApiError from "@/utils/api-error.js";
+} from "@/repositories/post.repository";
+import type { PublicAutomationRule } from "@/types/automation";
+import type { CreatePostInput, CreatePostResult } from "@/types/post";
+import ApiError from "@/utils/api-error";
 
 const computeDelayMs = (scheduledAt: Date): number => {
   const delay = scheduledAt.getTime() - Date.now();
@@ -58,6 +58,7 @@ export const createPost = async (
           triggerType: input.automationRule.triggerType,
           triggerValue: input.automationRule.triggerValue,
           actionType: input.automationRule.actionType,
+          actionValue :input.automationRule.actionValue
         }
       : null
   );

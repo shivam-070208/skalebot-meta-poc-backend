@@ -1,11 +1,11 @@
 import { Queue } from "bullmq";
-import { redisConnection } from "@/config/redis.js";
+import { redisConnection } from "@/config/redis";
 import type {
   AutomationJobData,
   CampaignQueueJobData,
-  MessageJobData,
   PublishJobData,
-} from "@/types/queue.js";
+} from "@/types/queue";
+import { CampaignContent } from "@/services/instagram-message.service";
 
 export const QUEUE_NAMES = {
   publish: "publish",
@@ -29,7 +29,11 @@ export const publishQueue = new Queue<PublishJobData>(QUEUE_NAMES.publish, {
   defaultJobOptions,
 });
 
-export const messageQueue = new Queue<MessageJobData>(QUEUE_NAMES.message, {
+export const messageQueue = new Queue<{
+  accountId: string;
+  recipientId: string;
+  contents: CampaignContent[];
+}>(QUEUE_NAMES.message, {
   connection: redisConnection,
   defaultJobOptions,
 });

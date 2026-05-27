@@ -17,13 +17,13 @@ export type PublishType = (typeof PUBLISH_TYPES)[number];
 export type PostRow = {
   id: string;
   account_id: string;
-  media_asset_id: string | null;
   media_url: string | null;
   caption: string | null;
   scheduled_at: Date | null;
   publish_status: string;
   published_at: Date | null;
   created_at: Date;
+  external_media_id?: string | null;
 };
 
 export type PublicPost = {
@@ -35,6 +35,7 @@ export type PublicPost = {
   publishStatus: string;
   publishedAt: string | null;
   createdAt: string;
+  externalMediaId?: string | null;
 };
 
 export type CreatePostInput = {
@@ -45,12 +46,14 @@ export type CreatePostInput = {
   publishType: PublishType;
   scheduledAt: Date | null;
   automationRule: CreatePostAutomationRuleInput | null;
+  externalMediaId?: string | null;
 };
 
 export type CreatePostAutomationRuleInput = {
   triggerType: string;
   triggerValue: string;
   actionType: string;
+  actionValue: string;
 };
 
 export type CreatePostResult = {

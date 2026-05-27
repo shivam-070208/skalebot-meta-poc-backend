@@ -1,4 +1,4 @@
-import type { ParsedMetaWebhookEvent } from "@/types/webhook.js";
+import type { ParsedMetaWebhookEvent } from "@/types/webhook";
 
 const asRecord = (v: unknown): Record<string, unknown> | null =>
   v !== null && typeof v === "object" ? (v as Record<string, unknown>) : null;

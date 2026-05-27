@@ -37,7 +37,7 @@ export const sendCampaign = async ({
   for (const content of contents) {
     try {
       if (content.content_type === "text") {
-        await axios.post(
+       const res= await axios.post(
           url,
           {
             recipient: { id: recipientId },
@@ -45,6 +45,7 @@ export const sendCampaign = async ({
           },
           { headers }
         );
+        console.log(res,account)
       } else if (content.content_type === "image") {
         await axios.post(
           url,

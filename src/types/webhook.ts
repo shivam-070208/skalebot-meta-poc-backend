@@ -9,7 +9,6 @@ export type ParsedMetaWebhookEvent = {
   notificationToken: string | null;
   postbackPayload: string | null;
   isEcho: boolean;
-  /** Direct message to the business account */
   isIncomingMessage: boolean;
   raw: unknown;
 };

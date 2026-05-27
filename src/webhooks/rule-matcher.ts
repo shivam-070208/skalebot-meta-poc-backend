@@ -1,5 +1,5 @@
-import type { MatchedAutomationRule } from "@/types/automation.js";
-import type { ParsedMetaWebhookEvent } from "@/types/webhook.js";
+import type { MatchedAutomationRule } from "@/types/automation";
+import type { ParsedMetaWebhookEvent } from "@/types/webhook";
 
 const ruleKey = (rule: MatchedAutomationRule): string =>
   `${rule.id}:${rule.post_id}`;

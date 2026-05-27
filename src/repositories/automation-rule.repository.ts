@@ -1,8 +1,8 @@
-import { query } from "@/config/db.js";
+import { query } from "@/config/db";
 import type {
   AutomationRuleRow,
   MatchedAutomationRule,
-} from "@/types/automation.js";
+} from "@/types/automation";
 
 export const findRuleByPostId = async (
   postId: string
@@ -25,12 +25,11 @@ export const findMatchingRules = async (
 ): Promise<MatchedAutomationRule[]> => {
   const res = await query(
     `SELECT ar.id, ar.post_id, ar.trigger_type, ar.trigger_value,
-            ar.action_type, ar.is_active, ar.created_at,
-            p.account_id, p.caption, p.media_url
+            ar.action_type, ar.action_value,ar.is_active, ar.created_at,
+            p.account_id , p.external_media_id
      FROM automation_rules ar
      INNER JOIN posts p ON p.id = ar.post_id
      WHERE p.account_id = $1
-       AND ar.is_active = true
        AND ar.trigger_type = $2
        AND LOWER(TRIM(ar.trigger_value)) = LOWER(TRIM($3))`,
     [accountId, triggerType, triggerValue]

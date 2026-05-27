@@ -13,17 +13,12 @@ export const insertUser = async (input: {
   const id = randomUUID();
   try {
     const ins = await query(
-      `INSERT INTO users (id, name, email, password, role)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, name, email, role, created_at`,
+      `INSERT INTO users (id, name, email, password, role) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, email, role, created_at`,
       [id, input.name, input.email, input.passwordHash, "user"]
     );
     const row = ins.rows[0] as UserRow | undefined;
     if (!row) {
-      throw new ApiError(
-        "HTTP_500_INTERNAL_SERVER_ERROR",
-        "Registration failed"
-      );
+      throw new ApiError("HTTP_500_INTERNAL_SERVER_ERROR", "Registration failed");
     }
     return mapPublicUser(row);
   } catch (err: unknown) {
@@ -41,12 +36,20 @@ export const insertUser = async (input: {
 
 export const findUserByEmail = async (
   email: string
-): Promise<UserRowWithPassword | null> => {
+): Promise<(UserRowWithPassword & { updatePassword?: (passwordHash: string) => Promise<void> }) | null> => {
   const result = await query(
-    `SELECT id, name, email, password, role, created_at
-     FROM users WHERE lower(email) = $1 LIMIT 1`,
+    `SELECT id, name, email, password, role, created_at FROM users WHERE lower(email) = $1 LIMIT 1`,
     [email]
   );
   const row = result.rows[0] as UserRowWithPassword | undefined;
-  return row ?? null;
+  if (!row) return null;
+  return {
+    ...row,
+    updatePassword: async (passwordHash: string) => {
+      await query(
+        `UPDATE users SET password = $1 WHERE id = $2`,
+        [passwordHash, row.id]
+      );
+    }
+  };
 };

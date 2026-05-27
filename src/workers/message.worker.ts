@@ -1,7 +1,7 @@
 import { Worker } from "bullmq";
-import { redisConnection } from "@/config/redis.js";
-import { QUEUE_NAMES } from "@/config/queues.js";
-import { sendCampaign, CampaignContent } from "@/services/instagram-message.service.js";
+import { redisConnection } from "@/config/redis";
+import { QUEUE_NAMES } from "@/config/queues";
+import { sendCampaign, CampaignContent } from "@/services/instagram-message.service";
 
 
 export const startMessageWorker = (): Worker<{
@@ -16,16 +16,16 @@ export const startMessageWorker = (): Worker<{
   }>(
     QUEUE_NAMES.message,
     async (job) => {
+      
       await sendCampaign(job.data);
     },
-    { connection: redisConnection, concurrency: 5 }
+    { connection: redisConnection, concurrency: 3}
   );
 
   worker.on("failed", (job, err) => {
     console.error(
       "Message job failed",
-      job?.id,
-      err instanceof Error ? err.message : err
+      job?.id 
     );
   });
 

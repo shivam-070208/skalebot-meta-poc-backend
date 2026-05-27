@@ -1,6 +1,6 @@
 import { Router } from "express";
-import * as webhookController from "@/api/v1/controllers/webhook.controller.js";
-import { tryCatch } from "@/utils/try-catch.js";
+import * as webhookController from "@/api/v1/controllers/webhook.controller";
+import { tryCatch } from "@/utils/try-catch";
 
 const router = Router();
 

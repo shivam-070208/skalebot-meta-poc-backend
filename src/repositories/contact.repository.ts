@@ -147,7 +147,7 @@ export const findSubscribedContactsForAccount = async (
     `SELECT id, account_id, instagram_user_id, username, is_subscribed,
             window_expires_at, notification_token, created_at
      FROM contacts
-     WHERE account_id = $1 AND is_subscribed = true
+     WHERE account_id = $1
      ORDER BY created_at ASC`,
     [accountId]
   );

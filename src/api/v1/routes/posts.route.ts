@@ -1,7 +1,7 @@
 import { Router } from "express";
-import * as postController from "@/api/v1/controllers/post.controller.js";
+import * as postController from "@/api/v1/controllers/post.controller";
 import { isAuthorize } from "@v1/middlewares/is-authorize.middleware";
-import { tryCatch } from "@/utils/try-catch.js";
+import { tryCatch } from "@/utils/try-catch";
 
 const router = Router();
 

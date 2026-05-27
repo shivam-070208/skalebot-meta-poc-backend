@@ -1,10 +1,11 @@
 import { Worker } from "bullmq";
-import { redisConnection } from "@/config/redis.js";
-import { QUEUE_NAMES } from "@/config/queues.js";
-import { updatePostPublishStatus } from "@/repositories/post.repository.js";
-import { findPostById } from "@/repositories/post.repository.js";
-import { publishPostToInstagram } from "@/services/instagram-publish.service.js";
-import type { PublishJobData } from "@/types/queue.js";
+import { redisConnection } from "@/config/redis";
+import { QUEUE_NAMES } from "@/config/queues";
+import { updatePostPublishStatus, setPostExternalMediaId } from "@/repositories/post.repository";
+import { findPostById } from "@/repositories/post.repository";
+import { publishPostToInstagram } from "@/services/instagram-publish.service";
+import type { PublishJobData } from "@/types/queue";
+import { AxiosError } from "axios";
 
 export const startPublishWorker = (): Worker<PublishJobData> => {
   const worker = new Worker<PublishJobData>(
@@ -18,10 +19,16 @@ export const startPublishWorker = (): Worker<PublishJobData> => {
       await updatePostPublishStatus(post.id, "publishing");
 
       try {
-        await publishPostToInstagram({
+        const result = await publishPostToInstagram({
           postId: post.id,
           accountId: post.account_id,
         });
+
+
+        if (result.externalMediaId) {
+          await setPostExternalMediaId(post.id, result.externalMediaId);
+        }
+
         await updatePostPublishStatus(
           post.id,
           "published",
@@ -29,6 +36,7 @@ export const startPublishWorker = (): Worker<PublishJobData> => {
         );
       } catch (err) {
         await updatePostPublishStatus(post.id, "failed");
+        
         throw err;
       }
     },

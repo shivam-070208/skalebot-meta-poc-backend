@@ -1,8 +1,8 @@
 import "dotenv/config";
-import { startAutomationWorker } from "@/workers/automation.worker.js";
-import { startCampaignWorker } from "@/workers/campaign.worker.js";
-import { startMessageWorker } from "@/workers/message.worker.js";
-import { startPublishWorker } from "@/workers/publish.worker.js";
+import { startAutomationWorker } from "@/workers/automation.worker";
+import { startCampaignWorker } from "@/workers/campaign.worker";
+import { startMessageWorker } from "@/workers/message.worker";
+import { startPublishWorker } from "@/workers/publish.worker";
 
 const publishWorker = startPublishWorker();
 const messageWorker = startMessageWorker();

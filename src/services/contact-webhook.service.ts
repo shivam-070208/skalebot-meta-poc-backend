@@ -11,6 +11,7 @@ import {
   upsertContactFromIncomingMessage,
 } from "@/repositories/contact.repository";
 import type { ParsedMetaWebhookEvent } from "@/types/webhook";
+import { CampaignContent } from "./instagram-message.service";
 
 const messagingWindowExpiresAt = (): Date =>
   new Date(Date.now() + MESSAGING_WINDOW_HOURS * 60 * 60 * 1000);
@@ -28,11 +29,11 @@ const isSubscribeIntent = (event: ParsedMetaWebhookEvent): boolean => {
 const queueOutboundMessage = async (
   accountId: string,
   recipientId: string,
-  text: string
+  contents: CampaignContent[]
 ): Promise<void> => {
   await messageQueue.add(
     "send-message",
-    { accountId, recipientId, text },
+    { accountId, recipientId, contents },
     { jobId: `contact-msg-${accountId}-${recipientId}-${Date.now()}` }
   );
 };
@@ -66,7 +67,10 @@ export const handleIncomingMessageContact = async (
     await queueOutboundMessage(
       accountId,
       event.senderId,
-      SUBSCRIBE_NOTIFICATION_OPTIN_MESSAGE
+      [{
+        content_type: "text",
+        text_content: SUBSCRIBE_NOTIFICATION_OPTIN_MESSAGE
+      }]
     );
     return;
   }
@@ -78,7 +82,10 @@ export const handleIncomingMessageContact = async (
     await queueOutboundMessage(
       accountId,
       event.senderId,
-      SUBSCRIBE_SUCCESS_MESSAGE
+     [{
+      content_type: "text",
+      text_content: SUBSCRIBE_SUCCESS_MESSAGE
+     }]
     );
     return;
   }
@@ -87,7 +94,10 @@ export const handleIncomingMessageContact = async (
     await queueOutboundMessage(
       accountId,
       event.senderId,
-      SUBSCRIBE_PROMPT_MESSAGE
+      [{
+        content_type: "text",
+        text_content: SUBSCRIBE_PROMPT_MESSAGE
+      }]
     );
   }
 };
