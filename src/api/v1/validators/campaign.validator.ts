@@ -184,6 +184,12 @@ export const parseUpdateCampaignBody = (body: unknown): UpdateCampaignDto => {
   }
   if (b.scheduled_at !== undefined) {
     out.scheduledAt = parseScheduledAt(b.scheduled_at);
+    if (out.scheduledAt && out.scheduledAt.getTime() <= Date.now()) {
+      throw new ApiError(
+        "HTTP_400_BAD_REQUEST",
+        "scheduled_at must be in the future"
+      );
+    }
   }
   if (b.contents !== undefined) {
     if (!Array.isArray(b.contents)) {
