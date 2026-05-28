@@ -1,7 +1,7 @@
 export const TRIGGER_TYPES = ["message", "comment", "keyword"] as const;
 export type TriggerType = (typeof TRIGGER_TYPES)[number];
 
-export const ACTION_TYPES = ["send_post", "send_campaign"] as const;
+export const ACTION_TYPES = ["send_text", "send_campaign"] as const;
 export type ActionType = (typeof ACTION_TYPES)[number];
 
 export type AutomationRuleRow = {
@@ -10,6 +10,7 @@ export type AutomationRuleRow = {
   trigger_type: string;
   trigger_value: string;
   action_type: string;
+  action_value:string;
   is_active: boolean;
   created_at: Date;
 };
@@ -22,10 +23,12 @@ export type PublicAutomationRule = {
   actionType: string;
   isActive: boolean;
   createdAt: string;
+  actionValue:string;
 };
 
 export type MatchedAutomationRule = AutomationRuleRow & {
   account_id: string;
   caption: string | null;
-  media_url: string | null;
+  external_media_id:string | null;
 };
+

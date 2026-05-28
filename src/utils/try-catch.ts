@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express"
-import ApiError from "./api-error.js"
-import { StatusCodes } from "@/config/status-codes.js";
+import ApiError from "./api-error"
+import { StatusCodes } from "@/config/status-codes";
 
 export function tryCatch(
   handler: (req: Request, res: Response, next: NextFunction) => Promise<any>

@@ -114,6 +114,20 @@ export const findAccountById = async (
   return (res.rows[0] as AccountAuthRow | undefined) ?? null;
 };
 
+export const findPrimaryAccountForUser = async (
+  userId: string
+): Promise<AccountAuthRow | null> => {
+  const res = await query(
+    `SELECT id, user_id, instagram_account_id, access_token
+     FROM accounts
+     WHERE user_id = $1 AND is_active = true
+     ORDER BY created_at ASC
+     LIMIT 1`,
+    [userId]
+  );
+  return (res.rows[0] as AccountAuthRow | undefined) ?? null;
+};
+
 export const findAccountByInstagramId = async (
   instagramAccountId: string
 ): Promise<AccountAuthRow | null> => {

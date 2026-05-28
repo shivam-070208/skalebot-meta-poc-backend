@@ -1,4 +1,4 @@
-import type { ParsedMetaWebhookEvent } from "@/types/webhook.js";
+import type { ParsedMetaWebhookEvent } from "@/types/webhook";
 
 const asRecord = (v: unknown): Record<string, unknown> | null =>
   v !== null && typeof v === "object" ? (v as Record<string, unknown>) : null;
@@ -11,6 +11,57 @@ const readText = (message: Record<string, unknown> | null): string => {
   const textObj = asRecord(message.text);
   if (textObj && typeof textObj.body === "string") return textObj.body.trim();
   return "";
+};
+
+const readNotificationToken = (
+  messaging: Record<string, unknown>
+): string | null => {
+  if (typeof messaging.notification_messages_token === "string") {
+    return messaging.notification_messages_token.trim() || null;
+  }
+  const optin = asRecord(messaging.optin);
+  if (optin && typeof optin.notification_messages_token === "string") {
+    return optin.notification_messages_token.trim() || null;
+  }
+  return null;
+};
+
+const buildIncomingMessageEvent = (
+  pageId: string,
+  messaging: Record<string, unknown>
+): ParsedMetaWebhookEvent | null => {
+  const sender = asRecord(messaging.sender);
+  const senderId =
+    typeof sender?.id === "string" ? sender.id : String(sender?.id ?? "");
+  if (!senderId || !pageId) return null;
+
+  const message = asRecord(messaging.message);
+  const isEcho = message?.is_echo === true;
+  if (isEcho) return null;
+
+  const text = readText(message);
+  const notificationToken = readNotificationToken(messaging);
+  const postback = asRecord(messaging.postback);
+  const postbackPayload =
+    typeof postback?.payload === "string" ? postback.payload.trim() : null;
+
+  const username =
+    typeof sender?.username === "string" ? sender.username.trim() : null;
+
+  if (!text && !notificationToken && !postbackPayload) return null;
+
+  return {
+    instagramAccountId: pageId,
+    triggerType: "message",
+    triggerValue: text || postbackPayload || "notification_opt_in",
+    senderId,
+    username,
+    notificationToken,
+    postbackPayload,
+    isEcho: false,
+    isIncomingMessage: true,
+    raw: messaging,
+  };
 };
 
 const parseMessagingEvents = (
@@ -28,27 +79,23 @@ const parseMessagingEvents = (
   for (const item of asArray(entry.messaging)) {
     const messaging = asRecord(item);
     if (!messaging) continue;
-
-    const sender = asRecord(messaging.sender);
-    const senderId =
-      typeof sender?.id === "string" ? sender.id : String(sender?.id ?? "");
-
-    const message = asRecord(messaging.message);
-    const text = readText(message);
-    if (!text || !pageId) continue;
-
-    events.push({
-      instagramAccountId: pageId,
-      triggerType: "message",
-      triggerValue: text,
-      senderId,
-      raw: item,
-    });
+    const evt = buildIncomingMessageEvent(pageId, messaging);
+    if (evt) events.push(evt);
   }
 
   for (const item of asArray(entry.changes)) {
     const change = asRecord(item);
-    if (!change || change.field !== "comments") continue;
+    if (!change) continue;
+
+    if (change.field === "messages") {
+      const value = asRecord(change.value);
+      if (!value) continue;
+      const evt = buildIncomingMessageEvent(pageId, value);
+      if (evt) events.push(evt);
+      continue;
+    }
+
+    if (change.field !== "comments") continue;
 
     const value = asRecord(change.value);
     if (!value) continue;
@@ -69,20 +116,21 @@ const parseMessagingEvents = (
       media && typeof media.owner === "string" ? media.owner : undefined;
 
     const accountId =
-      typeof mediaOwner === "string"
-        ? mediaOwner
-        : typeof value.media_id === "string"
-          ? pageId
-          : pageId;
+      typeof mediaOwner === "string" ? mediaOwner : pageId;
 
     if (!text) continue;
 
     events.push({
-      instagramAccountId:
-        typeof accountId === "string" ? accountId : pageId,
+      instagramAccountId: accountId,
       triggerType: "comment",
       triggerValue: text,
       senderId,
+      username:
+        typeof from?.username === "string" ? from.username.trim() : null,
+      notificationToken: null,
+      postbackPayload: null,
+      isEcho: false,
+      isIncomingMessage: false,
       raw: item,
     });
   }

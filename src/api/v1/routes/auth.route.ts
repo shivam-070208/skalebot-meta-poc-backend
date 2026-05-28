@@ -11,6 +11,10 @@ router.post("/login", tryCatch(authController.login));
 router.post("/logout", tryCatch(authController.logout));
 router.get("/me", isAuthorize, tryCatch(authController.me));
 
+
+router.post("/forgot-password", tryCatch(authController.forgotPassword));
+router.post("/reset-password", tryCatch(authController.resetPassword));
+
 router.get(
   "/instagram",
   isAuthorize,

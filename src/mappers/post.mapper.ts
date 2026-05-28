@@ -1,8 +1,8 @@
-import type { PublicPost, PostRow } from "@/types/post.js";
+import type { PublicPost, PostRow } from "@/types/post";
 import type {
   AutomationRuleRow,
   PublicAutomationRule,
-} from "@/types/automation.js";
+} from "@/types/automation";
 
 export const mapPostRow = (row: PostRow): PublicPost => ({
   id: row.id,
@@ -25,4 +25,5 @@ export const mapAutomationRuleRow = (
   actionType: row.action_type,
   isActive: row.is_active,
   createdAt: row.created_at.toISOString(),
+  actionValue:row.action_value
 });

@@ -1,8 +1,8 @@
 import axios from "axios";
-import { instagramGraphUrl } from "@/config/instagram.js";
-import { findAccountById } from "@/repositories/account.repository.js";
-import { findPostById } from "@/repositories/post.repository.js";
-import ApiError from "@/utils/api-error.js";
+import { instagramGraphUrl } from "@/config/instagram";
+import { findAccountById } from "@/repositories/account.repository";
+import { findPostById } from "@/repositories/post.repository";
+import ApiError from "@/utils/api-error";
 
 type PublishPostParams = {
   postId: string;
@@ -40,6 +40,7 @@ export const publishPostToInstagram = async ({
       },
     }
   );
+ 
 
   const creationId = containerRes.data?.id;
   if (!creationId) {
@@ -59,6 +60,6 @@ export const publishPostToInstagram = async ({
       },
     }
   );
-
+ 
   return { externalMediaId: publishRes.data?.id };
 };
