@@ -42,7 +42,7 @@ export const handleIncomingMessageContact = async (
   accountId: string,
   event: ParsedMetaWebhookEvent
 ): Promise<void> => {
-  console.log(event)
+
   if (!event.isIncomingMessage || event.isEcho || !event.senderId) {
     return;
   }

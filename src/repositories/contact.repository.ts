@@ -151,6 +151,7 @@ export const findSubscribedContactsForAccount = async (
      ORDER BY created_at ASC`,
     [accountId]
   );
+  console.log(res.rows);
   return res.rows as ContactRow[];
 };
 

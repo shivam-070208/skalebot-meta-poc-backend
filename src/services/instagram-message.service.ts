@@ -24,7 +24,7 @@ export const sendCampaign = async ({
   contents: CampaignContent[];
 }) => {
   const account = await findAccountById(accountId);
-
+  
   if (!account?.access_token) {
     throw new ApiError("HTTP_400_BAD_REQUEST", "Missing access token");
   }
@@ -45,7 +45,6 @@ export const sendCampaign = async ({
           },
           { headers }
         );
-        console.log(res,account)
       } else if (content.content_type === "image") {
         await axios.post(
           url,
@@ -140,7 +139,7 @@ export const sendCampaign = async ({
       }
     } catch (err) {
       if (isAxiosError(err)) {
-        console.error("IG send failed", err.response?.data);
+        console.error("IG send failed", err.response);
       }
       throw err;
     }

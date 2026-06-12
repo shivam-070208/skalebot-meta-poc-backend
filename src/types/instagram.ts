@@ -61,6 +61,22 @@ export type PublicInstagramAccount = {
   profilePicture: string | null;
 };
 
+export type InstagramAccountListItem = PublicInstagramAccount & {
+  pageId: string | null;
+  isActive: boolean;
+  createdAt: string;
+};
+
+export type InstagramAccountDetail = InstagramAccountListItem & {
+  tokenExpiry: string | null;
+};
+
+export type InstagramAccountListQuery = {
+  page: number;
+  limit: number;
+  isActive?: boolean;
+};
+
 export type InstagramOAuthCallbackQuery = {
   oauthCode: string;
   oauthState: string;

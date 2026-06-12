@@ -36,7 +36,9 @@ export const startPublishWorker = (): Worker<PublishJobData> => {
         );
       } catch (err) {
         await updatePostPublishStatus(post.id, "failed");
-        
+        if(err instanceof AxiosError){
+          console.log(err.response?.data)
+        }
         throw err;
       }
     },

@@ -9,6 +9,8 @@ export const AUTH_COOKIE_NAME =
 export const AUTH_COOKIE_MAX_AGE_MS = JWT_EXPIRES_IN_SEC * 1000;
 
 
+export const INSTAGRAM_OAUTH_REDIRECT_URL_COOKIE_NAME = "instagram_oauth_redirect_url";
+
 export const AUTH_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const AUTH_BCRYPT_ROUNDS = 10;
 export const AUTH_PASSWORD_MIN = 8;

@@ -2,9 +2,11 @@ import { randomUUID } from "crypto";
 import { query } from "@/config/db";
 import ApiError from "@/utils/api-error";
 import type {
+  InstagramAccountListQuery,
   PublicInstagramAccount,
   UpsertInstagramAccountInput,
 } from "@/types/instagram";
+import { sqlOffset } from "@/utils/pagination";
 
 type AccountRow = {
   id: string;
@@ -13,11 +15,29 @@ type AccountRow = {
   profile_picture: string | null;
 };
 
+type PublicAccountRow = AccountRow & {
+  page_id: string | null;
+  is_active: boolean;
+  token_expiry: Date | null;
+  created_at: Date;
+};
+
 const mapAccountRow = (row: AccountRow): PublicInstagramAccount => ({
   id: row.id,
   instagramAccountId: row.instagram_account_id,
   username: row.username,
   profilePicture: row.profile_picture,
+});
+
+const mapPublicAccountRow = (row: PublicAccountRow) => ({
+  id: row.id,
+  instagramAccountId: row.instagram_account_id,
+  username: row.username,
+  profilePicture: row.profile_picture,
+  pageId: row.page_id,
+  isActive: row.is_active,
+  tokenExpiry: row.token_expiry ? row.token_expiry.toISOString() : null,
+  createdAt: row.created_at.toISOString(),
 });
 
 export const upsertInstagramAccount = async (
@@ -139,4 +159,69 @@ export const findAccountByInstagramId = async (
     [instagramAccountId]
   );
   return (res.rows[0] as AccountAuthRow | undefined) ?? null;
+};
+
+const buildAccountListFilters = (
+  userId: string,
+  listQuery: InstagramAccountListQuery
+): { where: string; params: unknown[] } => {
+  const params: unknown[] = [userId];
+  let where = "WHERE user_id = $1";
+
+  if (listQuery.isActive !== undefined) {
+    params.push(listQuery.isActive);
+    where += ` AND is_active = $${params.length}`;
+  }
+
+  return { where, params };
+};
+
+const publicAccountSelect = `
+  id, instagram_account_id, username, profile_picture,
+  page_id, is_active, token_expiry, created_at
+`;
+
+export const countAccountsForUser = async (
+  userId: string,
+  listQuery: InstagramAccountListQuery
+): Promise<number> => {
+  const { where, params } = buildAccountListFilters(userId, listQuery);
+  const res = await query(
+    `SELECT COUNT(*)::int AS total FROM accounts ${where}`,
+    params
+  );
+  return (res.rows[0] as { total: number }).total;
+};
+
+export const listAccountsForUser = async (
+  userId: string,
+  listQuery: InstagramAccountListQuery
+) => {
+  const { where, params } = buildAccountListFilters(userId, listQuery);
+  const limitIdx = params.length + 1;
+  const offsetIdx = params.length + 2;
+  const res = await query(
+    `SELECT ${publicAccountSelect}
+     FROM accounts
+     ${where}
+     ORDER BY created_at ASC
+     LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
+    [...params, listQuery.limit, sqlOffset(listQuery.page, listQuery.limit)]
+  );
+  return (res.rows as PublicAccountRow[]).map(mapPublicAccountRow);
+};
+
+export const findPublicAccountForUser = async (
+  accountId: string,
+  userId: string
+) => {
+  const res = await query(
+    `SELECT ${publicAccountSelect}
+     FROM accounts
+     WHERE id = $1 AND user_id = $2
+     LIMIT 1`,
+    [accountId, userId]
+  );
+  const row = res.rows[0] as PublicAccountRow | undefined;
+  return row ? mapPublicAccountRow(row) : null;
 };
