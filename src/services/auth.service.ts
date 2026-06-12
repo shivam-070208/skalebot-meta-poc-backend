@@ -8,6 +8,7 @@ import {
 import type { AuthSession, LoginInput, RegisterInput } from "@/types/user";
 import ApiError from "@/utils/api-error";
 import { signAccessToken } from "@/utils/jwt";
+import crypto from "crypto";
 
 const createSession = (user: {
   id: string;
@@ -59,4 +60,54 @@ export const loginUser = async (input: LoginInput): Promise<AuthSession> => {
 
   const role = row.role ?? "user";
   return createSession(mapPublicUser({ ...row, role }));
+};
+
+const generatePasswordResetToken = (): string => {
+  return crypto.randomBytes(32).toString("hex");
+};
+
+const passwordResetTokens: Record<
+  string,
+  { email: string; expiresAt: number }
+> = {};
+
+export const forgotPassword = async (email: string): Promise<{ resetToken: string }> => {
+  const user = await findUserByEmail(email);
+
+  if (!user) {
+    return { resetToken: "" };
+  }
+
+  const resetToken = generatePasswordResetToken();
+  const expiresAt = Date.now() + 1000 * 60 * 15;
+
+  passwordResetTokens[resetToken] = { email, expiresAt };
+
+  return { resetToken };
+};
+
+export const resetPassword = async (resetToken: string, newPassword: string): Promise<void> => {
+  const entry = passwordResetTokens[resetToken];
+  if (!entry || entry.expiresAt < Date.now()) {
+    throw new ApiError("HTTP_400_BAD_REQUEST", "Invalid or expired reset token");
+  }
+
+  const { email } = entry;
+  const user = await findUserByEmail(email);
+  if (!user) {
+    throw new ApiError("HTTP_404_NOT_FOUND", "User not found");
+  }
+
+  const newPasswordHash = await bcrypt.hash(newPassword, AUTH_BCRYPT_ROUNDS);
+
+  if (typeof user.id === "undefined") {
+    throw new ApiError("HTTP_404_NOT_FOUND", "User not found");
+  }
+  if (typeof user.updatePassword === "function") {
+    await user.updatePassword(newPasswordHash);
+  } else {
+    throw new ApiError("HTTP_500_INTERNAL_SERVER_ERROR", "Password update not implemented");
+  }
+
+  delete passwordResetTokens[resetToken];
 };

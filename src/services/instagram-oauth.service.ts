@@ -199,6 +199,7 @@ export const exchangeShortForLongToken = async (
   u.searchParams.set("grant_type", "ig_exchange_token");
   u.searchParams.set("client_secret", INSTAGRAM_APP_SECRET);
   u.searchParams.set("access_token", shortToken);
+  console.log(u.toString())
   const res = await fetch(u.toString(), { method: "GET" });
   const body = (await parseFetchJson(res)) as InstagramLongLivedTokenResponse;
   if (!res.ok || typeof body.access_token !== "string") {
@@ -281,6 +282,7 @@ export const connectInstagramAccount = async (
   oauthCode: string
 ): Promise<PublicInstagramAccount> => {
   const short = await exchangeCodeForShortToken(oauthCode);
+  console.log(short)
   const longTok = await exchangeShortForLongToken(short.accessToken);
   const profile = await fetchInstagramProfile(longTok.accessToken);
   const instagramAccountId = profile.igUserId || short.userId;

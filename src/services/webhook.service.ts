@@ -1,18 +1,20 @@
-import { findAccountByInstagramId } from "@/repositories/account.repository.js";
+import { findAccountByInstagramId } from "@/repositories/account.repository";
 import {
   findKeywordRules,
   findMatchingRules,
-} from "@/repositories/automation-rule.repository.js";
+} from "@/repositories/automation-rule.repository";
 import {
   insertWebhookEvent,
   markWebhookEventProcessed,
-} from "@/repositories/webhook-event.repository.js";
-import { queueAutomationActions } from "@/services/automation-execution.service.js";
-import { parseMetaWebhookPayload } from "@/webhooks/meta-parser.js";
-import { matchRulesForEvent } from "@/webhooks/rule-matcher.js";
+} from "@/repositories/webhook-event.repository";
+import { handleIncomingMessageContact } from "@/services/contact-webhook.service";
+import { queueAutomationActions } from "@/services/automation-execution.service";
+import { parseMetaWebhookPayload } from "@/webhooks/meta-parser";
+import { matchRulesForEvent } from "@/webhooks/rule-matcher";
 
 export const handleMetaWebhook = async (payload: unknown): Promise<void> => {
   const events = parseMetaWebhookPayload(payload);
+
   for (const event of events) {
     const eventId = await insertWebhookEvent(event.triggerType, event.raw);
 
@@ -23,18 +25,59 @@ export const handleMetaWebhook = async (payload: unknown): Promise<void> => {
         continue;
       }
 
-      const exactRules = await findMatchingRules(
-        account.id,
-        event.triggerType,
-        event.triggerValue
-      );
+      if (event.isIncomingMessage) {
+        await handleIncomingMessageContact(account.id, event);
+      }
 
-      const keywordRules =
-        event.triggerType === "message"
-          ? await findKeywordRules(account.id, event.triggerValue)
-          : [];
+     
+      let mediaId: string | null = null;
+      if (
+        event.raw &&
+        typeof event.raw === "object" &&
+        "value" in event.raw &&
+        event.raw.value &&
+        typeof event.raw.value === "object" &&
+        "media" in event.raw.value &&
+        event.raw.value.media &&
+        typeof event.raw.value.media === "object" &&
+        "id" in event.raw.value.media &&
+        typeof event.raw.value.media.id === "string"
+      ) {
+        mediaId = event.raw.value.media.id;
+      }
+ 
+        
+
+      let exactRules = [];
+      if (mediaId) {
+       
+       const  exactRulese = await findMatchingRules(
+          account.id,
+          event.triggerType,
+          event.triggerValue
+        );
+        exactRules = exactRulese.filter((rule) => rule.external_media_id === mediaId);
+      } else {
+       
+        exactRules = await findMatchingRules(
+          account.id,
+          event.triggerType,
+          event.triggerValue
+        );
+      }
+ 
+      let keywordRules: any[] = [];
+      if (event.triggerType === "message") {
+        keywordRules = await findKeywordRules(account.id, event.triggerValue);
+       
+        if (mediaId) {
+          keywordRules = keywordRules.filter((rule: any) => rule.post_id === mediaId);
+        }
+      }
+ 
 
       const rules = matchRulesForEvent(exactRules, keywordRules, event);
+  
       if (rules.length > 0) {
         await queueAutomationActions(rules, event.senderId);
       }

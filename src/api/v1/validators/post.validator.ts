@@ -1,10 +1,10 @@
 import {
   ACTION_TYPES,
   TRIGGER_TYPES,
-} from "@/types/automation.js";
-import { PUBLISH_TYPES } from "@/types/post.js";
-import type { CreatePostInput } from "@/types/post.js";
-import ApiError from "@/utils/api-error.js";
+} from "@/types/automation";
+import { PUBLISH_TYPES } from "@/types/post";
+import type { CreatePostInput } from "@/types/post";
+import ApiError from "@/utils/api-error";
 
 const parseBody = (body: unknown): Record<string, unknown> =>
   body !== null && typeof body === "object"
@@ -27,7 +27,8 @@ const parseAutomationRule = (
     typeof rule.action_type === "string"
       ? rule.action_type.trim().toLowerCase()
       : "";
-
+    const actionValue =
+      typeof rule.action_value === "string" ? rule.action_value.trim() : "";
   if (
     !TRIGGER_TYPES.includes(triggerType as (typeof TRIGGER_TYPES)[number])
   ) {
@@ -45,8 +46,16 @@ const parseAutomationRule = (
       `action_type must be one of: ${ACTION_TYPES.join(", ")}`
     );
   }
-
-  return { triggerType, triggerValue, actionType };
+  
+  if (!actionValue) {
+    throw new ApiError(
+      "HTTP_400_BAD_REQUEST",
+      "action_value is required  "
+    );
+  }
+ 
+  
+  return { triggerType, triggerValue, actionType, actionValue };
 };
 
 const parseScheduledAt = (value: unknown): Date | null => {
