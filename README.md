@@ -87,3 +87,15 @@ The Swagger UI documents the available API endpoints, request payload examples, 
 ```bash
 npm run build
 ```
+
+## Troubleshooting
+
+If you see connection errors like `ECONNREFUSED 127.0.0.1:6379`, Redis is not running locally.
+
+Start Redis before launching the workers or the queue-based flows:
+
+```bash
+redis-server
+```
+
+If Redis is running on a different host or port, update the `REDIS_URL` value in your `.env` file accordingly.
