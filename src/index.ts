@@ -18,6 +18,11 @@ app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+import cors from "cors";
+
+
+
+app.use(cors({ origin: "*" }));
 
 app.get("/", (_req, res) => {
   res.send("Express server is up and running!");
